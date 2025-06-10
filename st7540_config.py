@@ -17,6 +17,7 @@ def send_and_expect(ser, command, expect_start):
         elif not line:
             raise RuntimeError("No response or unexpected format")
 
+
 def read_params(ser):
     ser.write(b"\nstat\n")
     params = {
@@ -44,21 +45,33 @@ def read_params(ser):
     for k, v in params.items():
         print(f"{k}: {v}")
 
+
 def write_param(ser, name, value, expected_response):
     if value is None:
         return
     response = send_and_expect(ser, f"{name} {value}", expected_response)
     print(response)
 
+
 def main():
     parser = argparse.ArgumentParser(description="ST7540 UART Device Configurator")
     parser.add_argument("port", help="Serial port (e.g. COM3 or /dev/ttyUSB0)")
     parser.add_argument("command", choices=["read", "write", "help"], help="Operation mode")
-    parser.add_argument("-u", "--uart-baud", choices=[1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400, 460800], type=int, help="UART baud rate")
-    parser.add_argument("-s", "--stop-bit", choices=["1", "1.5", "2"], help="UART stop bit")
-    parser.add_argument("-c", "--check-bit", choices=["0", "1", "2", "none", "odd", "even"], help="UART parity check bit")
-    parser.add_argument("-p", "--plc-baud", type=int, choices=[600, 1200, 2400, 4800], help="PLC baud rate")
-    parser.add_argument("-f", "--plc-freq", type=int, choices=[60000, 66000, 72000, 76000, 82050, 86000, 110000, 132500], help="PLC frequency")
+    parser.add_argument("-u", "--uart-baud", type=int,
+                        choices=[1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 57600, 115200, 230400, 460800],
+                        help="UART baud rate")
+    parser.add_argument("-s", "--stop-bit",
+                        choices=["1", "1.5", "2"],
+                        help="UART stop bit")
+    parser.add_argument("-c", "--check-bit",
+                        choices=["0", "1", "2", "none", "odd", "even"],
+                        help="UART parity check bit")
+    parser.add_argument("-p", "--plc-baud", type=int,
+                        choices=[600, 1200, 2400, 4800],
+                        help="PLC baud rate")
+    parser.add_argument("-f", "--plc-freq", type=int,
+                        choices=[60000, 66000, 72000, 76000, 82050, 86000, 110000, 132500],
+                        help="PLC frequency")
 
     args = parser.parse_args()
 
@@ -85,6 +98,7 @@ def main():
     except RuntimeError as e:
         sys.stderr.write(f"Runtime error: {e}\n")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
