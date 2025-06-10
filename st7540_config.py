@@ -4,6 +4,10 @@ import serial
 import sys
 import time
 
+stop_bit_map = {"1": 0, "1.5": 1, "2": 2}
+check_bit_map = {"none": 0, "odd": 1, "even": 2}
+
+
 def send_and_expect(ser, command, expect_start):
     ser.write((command + "\n").encode())
     while True:
@@ -27,7 +31,15 @@ def read_params(ser):
         line = ser.readline().decode(errors="ignore").strip()
         for key in params:
             if line.startswith(f"{key}:"):
-                params[key] = line.split(":", 1)[1].strip()
+                value = line.split(":", 1)[1].strip()
+                if key == "com stop bit":
+                    params[key] = {str(v): k for k, v in stop_bit_map.items()}[value]
+                elif key == "com check bit":
+                    params[key] = {str(v): k for k, v in check_bit_map.items()}[value]
+                else:
+                    params[key] = value
+            elif not line:
+                raise RuntimeError("No response or unexpected format")
 
     for k, v in params.items():
         print(f"{k}: {v}")
@@ -62,13 +74,8 @@ def main():
             else:
                 write_param(ser, "uart_b", args.uart_baud, "combuad setup complete")
                 if args.stop_bit:
-                    stop_bit_map = {"1": 0, "1.5": 1, "2": 2}
                     write_param(ser, "uart_stop_bit", stop_bit_map[args.stop_bit], "stopbit setup complete")
                 if args.check_bit:
-                    check_bit_map = {
-                        "0": 0, "1": 1, "2": 2,
-                        "none": 0, "odd": 1, "even": 2,
-                    }
                     write_param(ser, "uart_check_bit", check_bit_map[args.check_bit], "checkbit setup complete")
                 write_param(ser, "plc_b", args.plc_baud, "pwrbaud setup complete")
                 write_param(ser, "plc_freq", args.plc_freq, "pwrfreque setup complete")
